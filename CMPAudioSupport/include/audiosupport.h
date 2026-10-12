@@ -1,6 +1,8 @@
 #ifndef CMP_WINDOWS_AUDIO_H
 #define CMP_WINDOWS_AUDIO_H
 #include <stdint.h>
+
+/*
 #if defined(_WIN32)
 # if defined(CWA_BUILD)
 #  define CWA_API __declspec(dllexport)
@@ -12,6 +14,20 @@
 # define CWA_API
 # define CWA_CALL
 #endif
+*/
+#ifdef _WIN32
+#ifdef CMPAUDIOSUPPORT_EXPORTS
+#define CWA_API __declspec(dllexport)
+#else
+#define CWA_API __declspec(dllimport)
+#endif
+
+#define CWA_CALL __cdecl
+#else
+#define CWA_API
+#define CWA_CALL
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

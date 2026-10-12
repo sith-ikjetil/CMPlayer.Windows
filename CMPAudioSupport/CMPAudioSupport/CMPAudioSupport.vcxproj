@@ -272,13 +272,11 @@ shlwapi.lib %(AdditionalOptions)</AdditionalOptions>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cmpaudiosupport.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Support.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cmpaudiosupport.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Metadata.cpp" />
     <ClCompile Include="pch.cpp">
