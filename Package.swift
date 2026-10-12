@@ -35,7 +35,8 @@ import PackageDescription
                 ],
                 linkerSettings: [
                     .linkedLibrary("CMPAudioSupport"),
-                    .unsafeFlags(["-L", "CMPAudioSupport/CMPAudioSupport/x64/Debug"])
+                    .unsafeFlags(["-L", "CMPAudioSupport/CMPAudioSupport/x64/Release"])
+                    //.unsafeFlags(["-L", "CMPAudioSupport/CMPAudioSupport/ARM64/Release"]) // FOR ARM64
                 ]
             )          
         ]        

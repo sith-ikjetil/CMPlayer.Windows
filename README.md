@@ -45,14 +45,8 @@ There are the following preprocessor flags defined in Package.swift:
   
 Uncomment any flag that is not appropriate.  
   
-## Header Files
-The following are the location of include header files to the  
-Swift C wrapper libraries used by CMPlayer.Linux.    
-### Cffmpeg (swift C wrapper library for ffmpeg)
-Are located at:
- - /usr/include/x86_64-linux-gnu/*library* (Ubuntu 22.04, 24.04)
- - /usr/include/ffmpeg/*library* (Fedora 40)
- - /usr/include/*library* (Manjaro 24)
+## CMPAudioSupport
+CMPAudioSupport is a Windows .dll that handles playback and metadata.
   
 ## How to build CMPlayer.Linux
 CMPlayer.Linux is written in Swift. That means that Swift must be  
@@ -61,7 +55,7 @@ installed firstly. See www.swift.org for download and install of Swift.
 Building **cmplayer** is relativly easy. After you clone the  
 project using the following:  
 ```bash
-git clone https://github.com/sith-ikjetil/CMPlayer.Linux.git
+git clone https://github.com/sith-ikjetil/CMPlayer.Windows.git
 ```
 You first must edit Package.swift in the CMPlayer.Linux directory.  
 You must uncomment the .define statements that apply, and comment out  
