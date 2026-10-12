@@ -78,13 +78,13 @@ flags work on you system, you might need to add support for your own system.
 You then need to stay in the CMPlayer.Linux directory and execute the  
 following commands:  
 ```bash
-swift build
+buildp.cmd
 ```
 If you get compiler errors, you might need the **C_INCLUDE_PATH** set in  
 your .bashrc and .bash_profile. If it builds without errors, you can then  
 build for release using the command:  
 ```bash
-swift build -c release
+buildp.cmd -c release
 ```
 After build you can find the binary in the CMPlayer.Windows/.build/release 
 directory. Then it is simply a job to copy **cmplayer** to a directory where that 
