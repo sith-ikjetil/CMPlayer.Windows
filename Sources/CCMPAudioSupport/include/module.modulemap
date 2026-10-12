@@ -1,0 +1,4 @@
+module CCMPAudioSupport {    
+    header "bridging-header.h"
+    export *
+}

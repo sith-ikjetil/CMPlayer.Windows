@@ -1,0 +1,5 @@
+Metadata: C:/Users/kjeti/Music/A/Andy Timmons/That Was Then, This Is Now/16 Slips Away.m4a
+artist: "Andy Timmons"
+title: "Slips Away"
+album: "That Was Then, This Is Now"
+duration: 290411

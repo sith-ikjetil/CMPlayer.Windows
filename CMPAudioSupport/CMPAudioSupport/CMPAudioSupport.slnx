@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="CMPAudioSupport.vcxproj" Id="50149575-d7c3-431b-a153-48333df3c0ca" />
+</Solution>
