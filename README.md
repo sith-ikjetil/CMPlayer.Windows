@@ -75,17 +75,26 @@ swiftSettings: [
 You should set the CMP_TARGET_? to the closes match to your system. If none of these  
 flags work on you system, you might need to add support for your own system.  
   
-You then need to stay in the CMPlayer.Linux directory and execute the  
-following commands:  
-```bash
-buildp.cmd
+You then need to execute the following command as first command in cmd.
+```cmd
+init.cmd
 ```
-If you get compiler errors, you might need the **C_INCLUDE_PATH** set in  
-your .bashrc and .bash_profile. If it builds without errors, you can then  
-build for release using the command:  
-```bash
-buildp.cmd -c release
+then stay in the CMPlayer.Windows directory and execute the following command:  
+```cmd
+swift build
 ```
-After build you can find the binary in the CMPlayer.Windows/.build/release 
-directory. Then it is simply a job to copy **cmplayer** to a directory where that 
-is in you path, and execute the application.  
+In order to build in release mode you execute the following command:
+```cmd
+swift build -c release
+```
+In order to add icon to the binary, execute the following command for building 
+and adding a resource.
+```cmd
+build-add-icon.cmd -c release
+``` 
+You build the CMPAudioSupport from Visual Studio 2026 and the project CMPAudioSupport. It is 
+using C++ language version C++23.
+ 
+After building you can find the binary in the CMPlayer.Windows/.build/x86??/[debug]|[release] 
+directory. NB! You need the CMPAudioSupport.dll in the same directory as the executable. Then it is 
+simply a job to copy **cmplayer with dll** to a directory of your choice, and execute the application.  
