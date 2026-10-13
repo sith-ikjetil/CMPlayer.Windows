@@ -56,17 +56,17 @@ CommandLineHandler.processCommandLine()
 // redirect stderr
 // we do this to remove process_comment messages
 let stderr_old = redirect_stderr()
-guard stderr_old != -1 else {    
-    print("Failed to redirect stderr to /dev/null")
+guard stderr_old != -1 else {        
+    print("Failed to redirect stderr to NUL")
     exit(ExitCodes.ERROR_REDIRECT.rawValue)
 }
 // stderr redirect successfull
 // normal startup and normal execution continue
-do {
+do {    
     // initialize CMPlayer.Linux
-    try g_player.initialize()    
+    try g_player.initialize()        
     // run the program and save exit code
-    try g_player.run()
+    try g_player.run()    
     // ensure g_quit is true to let all async code to exit
     g_quit = true
     // let all players async code stop playing and clean up

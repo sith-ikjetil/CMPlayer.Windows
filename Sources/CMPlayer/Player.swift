@@ -56,8 +56,8 @@ internal class Player {
         }           
         // log we have started
         PlayerLog.ApplicationLog?.logInformation(title: "CMPlayer", text: "Application Started.")
-        // initialize console
-        Console.initialize()        
+        // initialize console        
+        Console.initialize()            
         // make sure we show the setup window if we have no musicRootPaths
         if PlayerPreferences.musicRootPath.count == 0 {
             let wnd: SetupWindow = SetupWindow()
@@ -65,17 +65,17 @@ internal class Player {
         }
         // try load library
         try g_library.load()
-        // initialize CMPlayer, builds a brand new g_songs
-        let wnd = InitializeWindow()
+        // initialize CMPlayer, builds a brand new g_songs        
+        let wnd = InitializeWindow()        
         wnd.showWindow()        
         // rebuild g_library and all other structures
-        // - from g_songs which is populated after InitializeWindow
-        g_library.rebuild()
-        // save library      
-        g_library.save()                
+        // - from g_songs which is populated after InitializeWindow        
+        g_library.rebuild()        
+        // save library              
+        g_library.save()  // HAD ARC TROUBLE                        
         // if autoplay on startup, start playing
-        if PlayerPreferences.autoplayOnStartup && g_playlist.count > 0 {
-            self.play(player: 1, playlistIndex: 0)            
+        if PlayerPreferences.autoplayOnStartup && g_playlist.count > 0 {            
+            self.play(player: 1, playlistIndex: 0)                    
         }        
         // clear screen with current theme color
         Console.clearScreenCurrentTheme()                   
