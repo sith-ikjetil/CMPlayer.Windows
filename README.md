@@ -33,7 +33,7 @@ The following file formats are default supported:
  - .m4a  
   
 You can add more file types by using the --add-format/--remove-format  
-and --get-format command line arguments as long as Windows Media supports it.  
+and --get-format command line arguments as long as Media Foundation supports it.  
   
  
 ## Preprocessor Flags
@@ -48,18 +48,26 @@ Uncomment any flag that is not appropriate.
 ## CMPAudioSupport
 CMPAudioSupport is a Windows .dll that handles playback and metadata.
   
+## Prerequisites to building 
+The following are prerequisites to building CMPlayer.Windows: 
+ - Visual Studio 2026 (C++, CMPAudioSupport.dll) 
+ - Visual Studio 2022 (C++, Swift)
+ - Swift Developer Toolkit 6.3.3
+ 
 ## How to build CMPlayer.Linux
 CMPlayer.Linux is written in Swift. That means that Swift must be  
-installed firstly. See www.swift.org for download and install of Swift.
+installed before trying to build. See www.swift.org for download and 
+install of Swift.
   
-Building **cmplayer** is relativly easy. After you clone the  
-project using the following:  
+Building **cmplayer** is relativly easy. You clone the  
+project using the following command:  
 ```bash
 git clone https://github.com/sith-ikjetil/CMPlayer.Windows.git
 ```
 You first must edit Package.swift in the CMPlayer.Linux directory.  
 You must uncomment the .define statements that apply, and comment out  
 those that do not apply. Like this:  
+ 
 ```swift
 cSettings: [
     .define("CMP_TARGET_WIN_V11"),    
@@ -71,30 +79,35 @@ swiftSettings: [
     .define("CMP_PLATFORM_AMD64"),
     //.define("CMP_PLATFORM_ARM64")        
 ]
-```
+``` 
+ 
 You should set the CMP_TARGET_? to the closes match to your system. If none of these  
-flags work on you system, you might need to add support for your own system.  
+flags work on you system, you might need to add support for your own system. 
   
 You then need to execute the following command as first command in cmd.
 ```cmd
 init.cmd
-```
+``` 
+ 
 then stay in the CMPlayer.Windows directory and execute the following command:  
 ```cmd
 swift build
-```
+``` 
+ 
 In order to build in release mode you execute the following command:
 ```cmd
 swift build -c release
 ```
+ 
 In order to add icon to the binary, execute the following command for building 
 and adding a resource.
 ```cmd
 build-add-icon.cmd -c release
 ``` 
-You build the CMPAudioSupport from Visual Studio 2026 and the project CMPAudioSupport. It is 
-using C++ language version C++23.
  
 After building you can find the binary in the CMPlayer.Windows/.build/x86??/[debug]|[release] 
 directory. NB! You need the CMPAudioSupport.dll in the same directory as the executable. Then it is 
 simply a job to copy **cmplayer with dll** to a directory of your choice, and execute the application.  
+
+You build the CMPAudioSupport from Visual Studio 2026. It uses the C++ language version C++23. 
+ 
