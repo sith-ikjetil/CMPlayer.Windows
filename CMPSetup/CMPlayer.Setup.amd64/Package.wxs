@@ -1,0 +1,9 @@
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Id="SOLBERG.IT.SOFTWARE.CMPlayer.Setup.amd64" Name="CMPlayer" Manufacturer="SOLBERG IT SOFTWARE" Version="1.6.2" UpgradeCode="{3F11836B-F8AC-4B78-AAAD-63EE0AE0A5EE}">
+    <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+	<MediaTemplate EmbedCab="yes" />
+    <Feature Id="Main">
+      <ComponentGroupRef Id="CMPlayerComponents" />
+    </Feature>
+  </Package>
+</Wix>

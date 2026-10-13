@@ -1,0 +1,22 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <ComponentGroup Id="CMPlayerComponents" Directory="INSTALLFOLDER64">
+		<Component Guid="{0CE8DC75-9614-4778-9B70-354D3F26EF2B}">
+			<File Id="CMPlayerExe" Source="../../.build/x86_64-unknown-windows-msvc/release/cmplayer.exe" KeyPath="yes">
+				<Shortcut Id="ProgramDirShortcutId1"
+						  Directory="ProgramMenuSubFolder"
+						  Name="Console Music Player (CMPlayer)"
+						  WorkingDirectory='INSTALLFOLDER'
+						  Icon="cmplayer.exe"
+						  IconIndex="0"
+						  Advertise='yes'
+						>
+					<Icon Id="cmplayer.exe" SourceFile="../../.build/x86_64-unknown-windows-msvc/release/cmplayer.exe"/>
+				</Shortcut>								
+			</File>
+			<File Source="../../CMPAudioSupport/CMPAudioSupport/x64/Release/CMPAudioSupport.dll" />			
+			<RemoveFolder Directory="ProgramMenuSubFolder" On="uninstall"/>
+		</Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
