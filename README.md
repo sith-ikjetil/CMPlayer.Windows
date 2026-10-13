@@ -51,6 +51,7 @@ CMPAudioSupport is a Windows .dll that handles playback and metadata.
 ## Prerequisites to building 
 The following are prerequisites to building CMPlayer.Windows: 
  - Visual Studio 2026 (C++, CMPAudioSupport.dll) 
+ - HeatWave extension for Visual Studio 2026 (Msi setup project)
  - Visual Studio 2022 (C++, Swift)
  - Swift Developer Toolkit 6.3.3
  
