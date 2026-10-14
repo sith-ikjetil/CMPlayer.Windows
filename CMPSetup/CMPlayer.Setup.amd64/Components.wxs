@@ -14,6 +14,13 @@
 					<Icon Id="cmplayer.exe" SourceFile="../../.build/x86_64-unknown-windows-msvc/release/cmplayer.exe"/>
 				</Shortcut>								
 			</File>
+			<Environment
+				   Id="CMPlayerPathEnvironment"
+				   Name="PATH"
+				   Value="[INSTALLFOLDER64]"
+				   Action="set"
+				   Part="last"
+				   System="yes" />
 			<File Source="../../CMPAudioSupport/CMPAudioSupport/x64/Release/CMPAudioSupport.dll" />			
 			<RemoveFolder Directory="ProgramMenuSubFolder" On="uninstall"/>
 		</Component>
