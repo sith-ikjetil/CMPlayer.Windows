@@ -42,7 +42,8 @@ internal class Console {
     //     
     static private var savedInputMode: DWORD?   
     static private let concurrentQueue1 = DispatchQueue(label: "cqueue.cmplayer.windows.console.1", attributes: .concurrent)
-    static private let concurrentQueue2 = DispatchQueue(label: "ConsoleResizeQueue", attributes: .concurrent)
+    static private let concurrentQueue2 = DispatchQueue(label: "cqueue.cmplayer.windows.console.2", attributes: .concurrent)
+    static private let concurrentQueue3 = DispatchQueue(label: "ConsoleResizeQueue", attributes: .concurrent)    
     static private let sigintSrcSIGINT = DispatchSource.makeSignalSource(signal: Int32(SIGINT), queue: Console.concurrentQueue1) // Ctrl+C
     //static private let sigintSrcSIGQUIT = DispatchSource.makeSignalSource(signal: Int32(SIGQUIT), queue: Console.concurrentQueue1)
     //static private let sigintSrcSIGILL = DispatchSource.makeSignalSource(signal: Int32(SIGILL), queue: Console.concurrentQueue1)
@@ -75,6 +76,7 @@ internal class Console {
     //static private let sigintSrcSIGUSR2 = DispatchSource.makeSignalSource(signal: Int32(SIGUSR2), queue: Console.concurrentQueue1)
     //static private let sigintSrcSIGTHR = DispatchSource.makeSignalSource(signal: Int32(SIGTHR), queue: Console.concurrentQueue1)
     //static private let sigintSrcSIGLIBRT = DispatchSource.makeSignalSource(signal: Int32(SIGLIBRT), queue: Console.concurrentQueue1)
+    static private var resizeWorkItem: DispatchWorkItem?
     ///
     /// Clears console screen.
     ///
@@ -298,39 +300,9 @@ internal class Console {
         sigintSrcSIGINT.resume()
         // Respond to window resize
         _ = Console.enableTerminalResizeEvents()
-        concurrentQueue2.async {
+        concurrentQueue3.async {
             Console.processConsoleEvents()
         }        
-        /*sigintSrcSIGWINCH.setEventHandler {         
-            // create winsize structure for terminal size   
-            var w = winsize()
-            // set variable rows to g_rows
-            var rows: Int = g_rows
-            // set variable cols to g_cols
-            var cols: Int = g_cols
-            // get terminal size
-            if ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &w) == 0 {
-                // set rows to changed window rows
-                rows = Int(w.ws_row)
-                // set cols to changed window cols
-                cols = Int(w.ws_col)
-            }
-            // set global g_rows to rows (row size)
-            g_rows = rows
-            // set global g_cols to cols (column size)
-            g_cols = cols
-            // if terminal size changed protocol stack has members
-            if g_tscpStack.count > 0 {
-                // set g_termSizeIsChanging flag to true
-                g_termSizeIsChanging = true
-                // call top window that terminal size has changed
-                g_tscpStack.last?.terminalSizeHasChanged()
-                // set g_termSizeIsChanging flag to false
-                g_termSizeIsChanging = false
-            }
-        }
-        // start processing signal
-        sigintSrcSIGWINCH.resume()*/
     }// initialize
     /// 
     /// Enables terminal resize events
@@ -345,37 +317,6 @@ internal class Console {
         }
         
         return SetConsoleMode(hInput,mode | DWORD(ENABLE_WINDOW_INPUT))
-    }
-    ///
-    /// handles terminal resize 
-    ///
-    static func terminalResizeHandler() {
-        let hOutput = GetStdHandle(STD_OUTPUT_HANDLE)
-
-        var info = CONSOLE_SCREEN_BUFFER_INFO()
-
-        guard GetConsoleScreenBufferInfo(hOutput, &info) else {
-            return
-        }
-
-        let rows = Int(info.srWindow.Bottom - info.srWindow.Top + 1)
-        let cols = Int(info.srWindow.Right - info.srWindow.Left + 1)
-
-        // Ignore unchanged dimensions.
-        if rows == g_rows && cols == g_cols {
-            return
-        }        
-        
-        g_rows = rows
-        g_cols = cols
-
-        if !g_tscpStack.isEmpty {
-            g_termSizeIsChanging = true
-
-            g_tscpStack.last?.terminalSizeHasChanged()
-
-            g_termSizeIsChanging = false
-        }
     }
     ///
     /// Processes console events
@@ -402,25 +343,34 @@ internal class Console {
                 )
 
                 if rows != previousRows || cols != previousCols {
+                    g_termSizeIsChanging = true
+                    Console.clearScreenCurrentTheme()
 
+                    // Cancel the previously scheduled resize notification
+                    Console.resizeWorkItem?.cancel()
+        
                     previousRows = rows
-                    previousCols = cols
+                    previousCols = cols                                    
                     
-                    //DispatchQueue.main.async {
-                        
-                        g_rows = rows
-                        g_cols = cols
-                                      
-                        if !g_tscpStack.isEmpty {
+                    g_rows = rows
+                    g_cols = cols
 
-                            g_termSizeIsChanging = true
-                            defer {
-                                g_termSizeIsChanging = false
-                            }
-                            
+                    // Create a new delayed notification
+                    let workItem = DispatchWorkItem {
+                        if !g_tscpStack.isEmpty {
                             g_tscpStack.last?.terminalSizeHasChanged()
+                            g_termSizeIsChanging = false
                         }
-                    //}
+                    }
+
+                    // Remember the new work item
+                    Console.resizeWorkItem = workItem
+                                    
+                    // Execute only after 250 ms without another SIGWINCH
+                    concurrentQueue2.asyncAfter(
+                        deadline: .now() + .milliseconds(130),
+                        execute: workItem
+                    )                    
                 }
             }
 
