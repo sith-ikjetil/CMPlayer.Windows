@@ -257,7 +257,11 @@ internal class Console {
     ///
     static func initialize() -> Void {        
         // get terminal size
-        let w = terminalSize()        
+        let w = terminalSize() 
+        // return if nil
+        guard w != nil else {
+            return;
+        }       
         // set global g_rows to terminal size rows
         g_rows = Int(w!.rows)
         // set global g_cols to terminal size cols
