@@ -60,8 +60,7 @@ CMPlayer.Linux is written in Swift. That means that Swift must be
 installed before trying to build. See www.swift.org for download and 
 install of Swift.
   
-Building **cmplayer** is relativly easy. You clone the  
-project using the following command:  
+Building **cmplayer** is relativly easy. You clone the project using the following command: 
 ```bash
 git clone https://github.com/sith-ikjetil/CMPlayer.Windows.git
 ```
@@ -85,7 +84,7 @@ swiftSettings: [
 You should set the CMP_TARGET_? to the closes match to your system. If none of these  
 flags work on you system, you might need to add support for your own system. 
   
-You then need to execute the following command as first command in cmd.
+You need to build cmplayer using a developer command prompt. If you use a non-developer command prompt, then you need to execute the following command as first command in cmd. (Visual Studio 2022 Command Prompt).
 ```cmd
 init.cmd
 ``` 
@@ -106,9 +105,13 @@ and adding a resource.
 build-add-icon.cmd -c release
 ``` 
  
-After building you can find the binary in the CMPlayer.Windows/.build/x86??/[debug]|[release] 
-directory. NB! You need the CMPAudioSupport.dll in the same directory as the executable. Then it is 
-simply a job to copy **cmplayer with dll** to a directory of your choice, and execute the application.  
-
-You build the CMPAudioSupport from Visual Studio 2026. It uses the C++ language version C++23. 
+After building you can find the binary in the CMPlayer.Windows/.build/x86_64??/debug or release directory. NB! You need the CMPAudioSupport.dll in the same directory as the executable in order to run it successfully. 
+ 
+You can also build the Setup msi package and install it. If you do then: 
+ - %PATH% environment is updated. 
+ - You also get an icon in Windows 11 start menu. 
+Notice however that you need to build the CMPAudioSupport.dll in release and swift project in release for 
+the Setup build process to find the files. 
+ 
+You build the CMPAudioSupport using Visual Studio 2026. It uses C++23 C++ language version. 
  
