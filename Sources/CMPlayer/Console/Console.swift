@@ -263,7 +263,7 @@ internal class Console {
             print("Console.initialize failed.")
             print(" > GetConsoleScreenBufferInfo failed.");
             print("   > \(windowsErrorString())")
-            exit(1);
+            exit(ExitCodes.ERROR_CONSOLE_INIT.rawValue);
         }       
         // set global g_rows to terminal size rows
         g_rows = Int(w!.rows)
