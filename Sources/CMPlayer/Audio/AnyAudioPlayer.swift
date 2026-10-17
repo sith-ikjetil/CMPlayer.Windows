@@ -1,28 +1,55 @@
-// Windows replacement for AnyAudioPlayer. Keep the existing CmpAudioPlayer wrapper,
-// CmpAudioPlayerProtocol, CmpMetadata, and CmpError definitions in your application.
-// Original source: Kjetil Kr Solberg, 2024. Windows adaptation, 2026.
+// 
+// import
+// 
 import Foundation
 import CCMPAudioSupport
-
+//
+// AnyAudioPlayer
+// Represents a player for playing audio. 
+// Also gathers metadata.
+//
 internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
+    // url to current playing file.
     private let filePath: URL
+    // lock object
     private let lock = NSLock()
+    // native handle
     private var handle: OpaquePointer?
+    // fade target [0,1]
     private var fadeTarget: Float = 1
+    // fade duration ms.
     private var fadeDuration: UInt64 = 0
+    // base volume [0,1]
     private var baseVolume: Float = 1
+    // error text
     private var errorText: String?
-
-    init(path: URL) { filePath = path }
-    deinit { cwa_destroy(handle) }
-
+    // 
+    // constructor
+    //
+    init(path: URL) { 
+        filePath = path 
+    }
+    //
+    // destructor
+    //
+    deinit { 
+        // call core windows audio 'CMPAudioSupport.dll' 
+        // exported cwa_destroy to destroy the handle to the
+        // player object.
+        cwa_destroy(handle) 
+    }
+    //
     // Every handle access is under the same lock. Callers must keep the Swift
     // object alive during calls; do not use unsafe unowned references across tasks.
+    //
     private func locked<T>(_ body: () throws -> T) rethrows -> T {
         lock.lock()
         defer { lock.unlock() }
         return try body()
     }
+    //
+    // return error message for core windows audio 'CMPAudioSupport.dll' error
+    //
     private static func message(_ error: cwa_error, code: Int32) -> String {
         var copy = error
         let text = withUnsafePointer(to: &copy.message) {
@@ -30,6 +57,9 @@ internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
         }
         return "Windows audio: \(text) (HRESULT 0x\(String(UInt32(bitPattern: code), radix: 16)))"
     }
+    //
+    // check that error code is not < 0. if < 0, then throw CmpError.
+    //
     private func checked(_ code: Int32, _ error: cwa_error) throws {
         if code < 0 {
             let text = Self.message(error, code: code)
@@ -37,6 +67,9 @@ internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
             throw CmpError(message: text)
         }
     }
+    //
+    // Ensure proper file url. If n ot throw CmpError.
+    //
     private static func nativePath(_ url: URL) throws -> String {
         guard url.isFileURL else { throw CmpError(message: "Windows audio requires a file URL") }
         var path = url.path
@@ -52,6 +85,9 @@ internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
         guard !path.utf8.contains(0) else { throw CmpError(message: "Path contains NUL") }
         return path
     }
+    //
+    // Make sure our file is opened, if not open it and return handle.
+    //
     private func ensureOpen() throws -> OpaquePointer {
         if let handle { return handle }
         guard cwa_abi_version() == 1 else { throw CmpError(message: "Unsupported WindowsAudio ABI") }
@@ -72,6 +108,9 @@ internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
         handle = created
         return created
     }
+    //
+    // Call CMPAudioSupport.dll and get snapshot.
+    //
     private func snapshot() -> cwa_snapshot {
         guard let handle else { return cwa_snapshot() }
         var result = cwa_snapshot()
@@ -83,19 +122,25 @@ internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
         }
         return result
     }
-    // Original implementation remains 'playing' while paused.
+    // return if we are currently playing.
     var isPlaying: Bool { locked {
         let state = snapshot().state
         return state == UInt32(CWA_PLAYING) || state == UInt32(CWA_PAUSED)
     } }
+    // return if we are currently paused.
     var isPaused: Bool { locked { snapshot().state == UInt32(CWA_PAUSED) } }
+    // return if we have played.
     var hasPlayed: Bool { locked { snapshot().has_played != 0 } }
+    // return elapsed time in ms.
     var timeElapsed: UInt64 { locked { snapshot().position_ms } }
+    // return duration of current file.
     var duration: UInt64 { locked { snapshot().duration_ms } }
     // The protocol's stop/pause/resume/seek/fade methods cannot throw.
     // This extra property exposes their failures and asynchronous backend errors.
     var lastError: String? { locked { _ = snapshot(); return errorText } }
-
+    //
+    // Start playing file.
+    //
     func play() throws {
         try locked {
             do {
@@ -109,6 +154,9 @@ internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
             }
         }
     }
+    //
+    // 
+    //
     private func command(_ operation: (OpaquePointer, UnsafeMutablePointer<cwa_error>) -> Int32) {
         locked {
             guard let handle else { return }
@@ -117,10 +165,15 @@ internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
             errorText = code < 0 ? Self.message(error, code: code) : nil
         }
     }
+    // stop playing.
     func stop() { command { cwa_stop($0, $1) } }
+    // pause playing
     func pause() { command { cwa_pause($0, $1) } }
+    // resume playing
     func resume() { command { cwa_resume($0, $1) } }
+    // seek to position
     func seekToPos(position: UInt64) { command { cwa_seek($0, position, $1) } }
+    // set crossfade volume.
     func setCrossfadeVolume(volume: Float, fadeDuration: UInt64) {
         locked {
             guard volume.isFinite && volume >= 0 && volume <= 1 else {
@@ -151,6 +204,9 @@ internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
             }
         }
     }
+    //
+    // gather metadata from path (file).
+    //
     static func gatherMetadata(path: URL) throws -> CmpMetadata {        
         guard cwa_abi_version() == 1 else { throw CmpError(message: "Unsupported WindowsAudio ABI") }
         let pathString = try nativePath(path)
@@ -177,4 +233,4 @@ internal final class AnyAudioPlayer: CmpAudioPlayerProtocol {
         // songNo is an application playlist number, not a file tag; retain default 0.        
         return result
     }
-}
+}// final class
