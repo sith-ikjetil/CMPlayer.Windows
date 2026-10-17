@@ -257,10 +257,13 @@ internal class Console {
     ///
     static func initialize() -> Void {        
         // get terminal size
-        let w = terminalSize() 
+        let w = terminalSize()         
         // return if nil
         guard w != nil else {
-            return;
+            print("Console.initialize failed.")
+            print(" > GetConsoleScreenBufferInfo failed.");
+            print("   > \(windowsErrorString())")
+            exit(1);
         }       
         // set global g_rows to terminal size rows
         g_rows = Int(w!.rows)

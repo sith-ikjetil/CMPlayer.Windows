@@ -11,6 +11,7 @@
 // import.
 //
 import Foundation
+import WinSDK
 import ucrt
 ///
 /// Enum exit codes
@@ -309,4 +310,29 @@ func normalizeFilename(_ filename: String) -> String {
     filename = filename.replacingOccurrences(of: ">", with: "_")
     filename = filename.replacingOccurrences(of: "|", with: "_")
     return filename
+}
+//
+// Function to convert GetLastError code to a string with code and explanation.
+//
+func windowsErrorString(_ error: DWORD = GetLastError()) -> String {
+    var buffer = [WCHAR](repeating: 0, count: 2048)
+
+    let length = FormatMessageW(
+        DWORD(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS),
+        nil,
+        error,
+        0,
+        &buffer,
+        DWORD(buffer.count),
+        nil
+    )
+
+    guard length > 0 else {
+        return "Unknown Windows error (\(error))"
+    }
+
+    let message = String(decoding: buffer.prefix(Int(length)), as: UTF16.self)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+
+    return "Windows error \(error): \(message)"
 }
