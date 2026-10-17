@@ -69,7 +69,8 @@ namespace CMPlayer
         }
     };
     //
-    // State data
+    // Player state object.
+    // Opens a file, plays, pauses, stops etc.
     //
     struct State {
         std::wstring path;
@@ -81,8 +82,11 @@ namespace CMPlayer
         explicit State(std::wstring p) : path(std::move(p)) { snapshot.volume = 1.0f; }
         ~State() { close(); }
         void close() noexcept {
-            if (engine) engine->Shutdown();
-            engine.Reset(); events.reset();
+            if (engine) 
+                engine->Shutdown();
+
+            engine.Reset(); 
+            events.reset();
         }
         void open() {
             close();
@@ -93,8 +97,7 @@ namespace CMPlayer
             check(MFCreateAttributes(&attributes, 1), "MFCreateAttributes");
             check(attributes->SetUnknown(MF_MEDIA_ENGINE_CALLBACK, notify.Get()), "Set Media Engine callback");
             ComPtr<IMFMediaEngineClassFactory> factory;
-            check(CoCreateInstance(CLSID_MFMediaEngineClassFactory, nullptr, CLSCTX_INPROC_SERVER,
-                                   IID_PPV_ARGS(&factory)), "Create Media Engine factory");
+            check(CoCreateInstance(CLSID_MFMediaEngineClassFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&factory)), "Create Media Engine factory");
             check(factory->CreateInstance(MF_MEDIA_ENGINE_AUDIOONLY, attributes.Get(), &engine), "Create audio Media Engine");
             check(engine->SetAutoPlay(FALSE), "Disable autoplay");
             check(engine->SetLoop(FALSE), "Disable loop");
@@ -200,6 +203,9 @@ namespace CMPlayer
     };
     /* One DLL-owned MTA thread per player. Both commands and fade ticks execute
        there, so no engine pointer crosses apartment or client-thread boundaries. */
+    //    
+    // Parallel worker. To do work parallel while returning immediately from source function.
+    //
     class Worker {
         std::mutex mutex;
         std::condition_variable changed;
@@ -264,9 +270,13 @@ namespace CMPlayer
 }
 
 /// <summary>
-/// 
+/// declare core windows audio cwa_player object.
 /// </summary>
-struct cwa_player { CMPlayer::Worker worker; explicit cwa_player(std::wstring p) : worker(std::move(p)) {} };
+struct cwa_player 
+{ 
+    CMPlayer::Worker worker; 
+    explicit cwa_player(std::wstring p) : worker(std::move(p)) {} 
+};
 
 //
 // using namespace
@@ -274,39 +284,72 @@ struct cwa_player { CMPlayer::Worker worker; explicit cwa_player(std::wstring p)
 using namespace CMPlayer;
     
 extern "C" {
+    //
+    // get abi version.
+    //
     uint32_t CWA_CALL cwa_abi_version(void) { return 1; }
+    //
+    // create cwa_player from path.
+    //
     int32_t CWA_CALL cwa_create(const char *path, cwa_player **out, cwa_error *error) {
         if (out) *out = nullptr;
         return boundary(error, [&] { require(out, "Output handle is NULL"); *out = new cwa_player(path_from_utf8(path)); });
     }
+    //
+    //  destroy cwa_player object.
+    //
     void CWA_CALL cwa_destroy(cwa_player *p) { delete p; }
+    //
+    // play cwa_player
+    //
     int32_t CWA_CALL cwa_play(cwa_player *p, cwa_error *e) {
         return boundary(e, [&] { require(p, "Player is NULL"); p->worker.call([](State &s) { s.play(); }); });
     }
+    //
+    // stop cwa_player
+    //
     int32_t CWA_CALL cwa_stop(cwa_player *p, cwa_error *e) {
         return boundary(e, [&] { require(p, "Player is NULL"); p->worker.call([](State &s) { s.stop(); }); });
     }
+    //
+    // pause cwa_player
+    //
     int32_t CWA_CALL cwa_pause(cwa_player *p, cwa_error *e) {
         return boundary(e, [&] { require(p, "Player is NULL"); p->worker.call([](State &s) { s.pause(); }); });
     }
+    //
+    // resume cwa_player
+    //
     int32_t CWA_CALL cwa_resume(cwa_player *p, cwa_error *e) {
         return boundary(e, [&] { require(p, "Player is NULL"); p->worker.call([](State &s) { s.resume(); }); });
     }
+    //
+    // seek cwa_player
+    //
     int32_t CWA_CALL cwa_seek(cwa_player *p, uint64_t ms, cwa_error *e) {
         return boundary(e, [&] { require(p, "Player is NULL"); p->worker.call([ms](State &s) { s.seek(ms); }); });
     }
+    //
+    // set volume of cwa_player
+    //
     int32_t CWA_CALL cwa_set_volume(cwa_player *p, float v, cwa_error *e) {
         return boundary(e, [&] {
             require(p && std::isfinite(v) && v >= 0 && v <= 1, "Invalid player or volume");
             p->worker.call([v](State &s) { s.base = v; s.tick(); });
         });
     }
+    //
+    // set end fade of cwa_player
+    //
     int32_t CWA_CALL cwa_set_end_fade(cwa_player *p, float v, uint64_t ms, cwa_error *e) {
         return boundary(e, [&] {
             require(p && std::isfinite(v) && v >= 0 && v <= 1, "Invalid player or target volume");
             p->worker.call([v, ms](State &s) { s.target = v; s.fade_ms = ms; s.tick(); });
         });
     }
+    //
+    // get snapshot status data of cwa_player
+    //
     int32_t CWA_CALL cwa_get_snapshot(cwa_player *p, cwa_snapshot *out, cwa_error *e) {
         if (out) *out = {};
         return boundary(e, [&] { require(p && out, "Player or output is NULL");
